@@ -3,8 +3,10 @@ import {
   createWebHistory
 } from 'vue-router'
 
-import LoginScreen from '../components/loginscreen/loginscreen.vue'
-import WelcomeScreen from '../components/welcomescreen/welcomescreen.vue'
+import LoginScreen from '../components/screens/loginscreen.vue'
+import WelcomeScreen from '../components/screens/welcomescreen.vue'
+import EvacuationScreen from '../components/screens/evacuationscreen.vue'
+
 
 const router = createRouter({
   history: createWebHistory(),
@@ -12,13 +14,9 @@ const router = createRouter({
   routes: [
     {
       path: '/',
-      redirect: '/login'
-    },
-
-    {
-      path: '/login',
       name: 'login',
       component: LoginScreen,
+
       props: {
         validUsername: 'Itay',
         validPassword: '1234'
@@ -29,8 +27,15 @@ const router = createRouter({
       path: '/home',
       name: 'home',
       component: WelcomeScreen
+    },
+
+    {
+      path: '/evacuation',
+      name: 'evacuation',
+      component: EvacuationScreen
     }
   ]
 })
+
 
 export default router
