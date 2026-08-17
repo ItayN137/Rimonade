@@ -52,13 +52,15 @@ function logout() {
     <!-- RIGHT SIDE -->
     <div class="navbar-right">
 
-      <button class="nav-button" @click="goHome">
-        <img :src="homeIcon" alt="Home" />
-      </button>
+      <template v-if="isLoggedIn">
+        <button class="nav-button" @click="goHome">
+          <img :src="homeIcon" alt="Home" />
+        </button>
 
-      <button class="nav-button" @click="logout">
-        <img :src="logoutIcon" alt="Logout" />
-      </button>
+        <button class="nav-button" @click="logout">
+          <img :src="logoutIcon" alt="Logout" />
+        </button>
+      </template>
 
       <span class="hello-user">
         שלום, {{ currentUser || 'אנא התחבר למערכת' }}
@@ -103,8 +105,8 @@ function logout() {
 }
 
 .brand img {
-  width: clamp(2rem, 5vw, 2.8125rem);
-  height: clamp(2rem, 5vw, 2.8125rem);
+  width: clamp(3.5rem, 6vw, 3rem);
+  height: clamp(3.5rem, 6vw, 3rem);
   object-fit: contain;
 }
 

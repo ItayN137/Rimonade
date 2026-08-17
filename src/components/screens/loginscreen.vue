@@ -1,6 +1,6 @@
 <script setup lang="ts">
 
-import { ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 
 import { useRouter } from 'vue-router'
 
@@ -11,12 +11,7 @@ import InputLine from '../generic/InputLine.vue'
 import userIcon from '../../assets/user.svg'
 import keyIcon from '../../assets/key.svg'
 import { loginUser } from '@/auth/auth'
-
-
-const props = defineProps<{
-  validUsername: string
-  validPassword: string
-}>()
+import { useMockDataSections } from '@/composables/useMockDataSections'
 
 
 const router = useRouter()
@@ -26,17 +21,29 @@ const username = ref('')
 const password = ref('')
 
 const errorMessage = ref('')
+const { data, loading, error } = useMockDataSections(['users'])
+const users = computed(() => data.value?.users ?? [])
+const dataLoaded = computed(() => !loading.value && error.value === null && data.value !== null)
 
+watch(error, (loadError) => {
+  if (loadError) {
+    console.error('Failed to load mock users:', loadError)
+    errorMessage.value = 'לא ניתן לטעון את נתוני ההתחברות'
+  }
+})
 
 function login() {
-
   const enteredUsername = username.value.trim()
+  const matchingUser = users.value.find(user =>
+    user.username === enteredUsername && user.password === password.value
+  )
 
+  if (!dataLoaded.value) {
+    errorMessage.value = 'לא ניתן לטעון את נתוני ההתחברות'
+    return
+  }
 
-  if (
-    enteredUsername === props.validUsername &&
-    password.value === props.validPassword
-  ) {
+  if (matchingUser) {
 
     errorMessage.value = ''
     loginUser(enteredUsername)
@@ -61,17 +68,13 @@ function login() {
 
   <div class="login-page">
 
-
     <main class="login-main">
-
 
       <h1 class="login-title">
         התחברות
       </h1>
 
-
       <div class="login-card">
-
 
         <InputLine v-model="username" label="שם משתמש" :icon="userIcon" :icon-size="16" />
 
@@ -79,25 +82,15 @@ function login() {
         <InputLine v-model="password" label="סיסמה" :icon="keyIcon" :icon-size="14" type="password" />
 
 
-        <p v-if="errorMessage" class="error-message">
-
-          {{ errorMessage }}
-
-        </p>
-
+        <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
 
         <button class="login-button" type="button" @click="login">
-
           התחבר
-
         </button>
-
 
       </div>
 
-
     </main>
-
 
   </div>
 

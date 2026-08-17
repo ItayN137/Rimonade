@@ -15,12 +15,7 @@ const router = createRouter({
     {
       path: '/',
       name: 'login',
-      component: LoginScreen,
-
-      props: {
-        validUsername: 'Itay',
-        validPassword: '1234'
-      }
+      component: LoginScreen
     },
 
     {

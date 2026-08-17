@@ -1,21 +1,50 @@
 <script setup lang="ts">
+import { computed } from 'vue'
+
 defineOptions({ inheritAttrs: false })
 
-withDefaults(defineProps<{ label: string; icon?: string; modelValue: string; type?: string; iconSize?: number }>(), {
-  type: 'text',
-  iconSize: 16
-})
-const emit = defineEmits<{ 'update:modelValue': [value: string] }>()
+const props = withDefaults(
+  defineProps<{
+    label: string
+    icon?: string
+    type?: string
+    iconSize?: number
+    rows?: number
+  }>(),
+  {
+    type: 'text',
+    iconSize: 16,
+    rows: 1,
+  },
+)
+
+const model = defineModel<string>({ default: '' })
+
+const isMultiline = computed(() => props.rows > 1)
+const containerHeight = computed(() =>
+  isMultiline.value ? `${60 + props.rows * 45}px` : undefined,
+)
+const fieldHeight = computed(() =>
+  isMultiline.value ? `${props.rows * 45}px` : undefined,
+)
+
 function updateValue(event: Event) {
-  emit('update:modelValue', (event.target as HTMLInputElement).value)
+  const field = event.target as HTMLInputElement | HTMLTextAreaElement
+  model.value = field.value
 }
 </script>
 
 <template>
-  <label class="input-line">
-    <span class="input-label"><span>{{ label }}</span><img v-if="icon" :src="icon" :width="iconSize" :height="iconSize"
-        alt="" /></span>
-    <input v-bind="$attrs" :value="modelValue" :type="type" @input="updateValue" />
+  <label class="input-line" :class="{ 'input-line--multiline': isMultiline }" :style="{ minHeight: containerHeight }">
+    <span class="input-label">
+      <span>{{ label }}</span>
+      <img v-if="icon" :src="icon" :width="iconSize" :height="iconSize" alt="" />
+    </span>
+
+    <textarea v-if="isMultiline" v-bind="$attrs" :value="model" :rows="rows" :style="{ height: fieldHeight }"
+      @input="updateValue"></textarea>
+
+    <input v-else v-bind="$attrs" :value="model" :type="type" @input="updateValue" />
   </label>
 </template>
 
@@ -29,7 +58,7 @@ function updateValue(event: Event) {
   padding: clamp(0.75rem, 2vw, 0.9375rem) clamp(0.75rem, 2vw, 0.875rem);
   border-bottom: 2px solid #202020;
   border-radius: clamp(0.75rem, 2vw, 1.125rem);
-  background: transparent;
+  background: white;
   box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
 }
 
@@ -48,7 +77,8 @@ function updateValue(event: Event) {
   flex-shrink: 0;
 }
 
-input {
+input,
+textarea {
   position: absolute;
   bottom: 0;
   width: calc(100% - clamp(1.5rem, 4vw, 1.875rem));
@@ -60,5 +90,10 @@ input {
   background: transparent;
   font-size: clamp(1rem, 2.5vw, 1.25rem);
   text-align: right;
+}
+
+textarea {
+  resize: none;
+  font-family: inherit;
 }
 </style>

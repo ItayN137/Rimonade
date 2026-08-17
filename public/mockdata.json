@@ -1,0 +1,98 @@
+{
+  "users": [
+    {
+      "username": "Itay",
+      "password": "1234",
+      "fullName": "איתי נבון"
+    }
+  ],
+  "soldierAttributes": {
+    "soldierFields": [
+      {
+        "label": "שם מלא",
+        "key": "fullName"
+      },
+      {
+        "label": "מין",
+        "key": "gender"
+      },
+      {
+        "label": "גיל",
+        "key": "age"
+      },
+      {
+        "label": "פרופיל",
+        "key": "profile"
+      },
+      {
+        "label": "מספר אישי",
+        "key": "personalNumber"
+      }
+    ],
+    "soldiersDetails": [
+      {
+        "personalNumber": "1234567",
+        "fullName": "ישראל ישראלי",
+        "gender": "זכר",
+        "age": 25,
+        "profile": 92
+      },
+      {
+        "personalNumber": "2345678",
+        "fullName": "נועה לוי",
+        "gender": "נקבה",
+        "age": 21,
+        "profile": 97
+      },
+      {
+        "personalNumber": "3456789",
+        "fullName": "דניאל כהן",
+        "gender": "זכר",
+        "age": 23,
+        "profile": 82
+      },
+      {
+        "personalNumber": "4567890",
+        "fullName": "מיה אברהם",
+        "gender": "נקבה",
+        "age": 20,
+        "profile": 64
+      }
+    ]
+  },
+  "injuryTypes": [
+    "פציעת רגל",
+    "פציעת יד",
+    "פגיעת ראש",
+    "כוויה",
+    "חבלה",
+    "פציעה מדממת",
+    "תגובה אלרגית",
+    "אחר"
+  ],
+  "severityLevels": [
+    {
+      "name": "קל",
+      "color": "#f3b4c7"
+    },
+    {
+      "name": "בינוני",
+      "color": "#df668a"
+    },
+    {
+      "name": "דחוף",
+      "color": "#bd2956"
+    },
+    {
+      "name": "מאוד דחוף",
+      "color": "#FF0084"
+    }
+  ],
+  "evacuationData": {
+    "personalNumber": "",
+    "soldier": null,
+    "injuryType": "",
+    "severity": "",
+    "notes": ""
+  }
+}

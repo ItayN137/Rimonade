@@ -1,11 +1,22 @@
 <script setup lang="ts">
-withDefaults(defineProps<{ text: string; icon: string; iconSize?: number }>(), { iconSize: 48 })
+withDefaults(
+  defineProps<{
+    text: string
+    icon: string
+    iconSize?: number
+  }>(),
+  {
+    iconSize: 48,
+  },
+)
+
 defineEmits<{ click: [] }>()
 </script>
 
 <template>
   <button class="text-button" type="button" @click="$emit('click')">
-    <span>{{ text }}</span><img :src="icon" :width="iconSize" :height="iconSize" alt="" />
+    <span>{{ text }}</span>
+    <img :src="icon" :width="iconSize" :height="iconSize" alt="" />
   </button>
 </template>
 

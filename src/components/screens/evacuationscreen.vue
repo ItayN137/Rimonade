@@ -1,105 +1,91 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { computed, ref, watch } from 'vue'
+import DropdownLine from '../generic/DropdownLine.vue'
 import InputLine from '../generic/InputLine.vue'
+import LevelsBar from '../generic/levelsbar.vue'
+import searchIcon from '../../assets/search.svg'
+import {
+    type EvacuationData,
+    type Soldier,
+    type SoldierFieldValue
+} from '@/services/mockDataService'
+import { useMockDataSections } from '@/composables/useMockDataSections'
 
-import searchIcon from '../../../assets/search.svg'
+const { data, loading, error } = useMockDataSections([
+    'soldiers',
+    'soldierFields',
+    'injuryTypes',
+    'severityLevels',
+    'evacuationData'
+])
 
-const router = useRouter()
-
-type Soldier = {
-    personalNumber: string
-    fullName: string
-    gender: string
-    age: number
-    profile: number
-}
-
-const soldiers: Soldier[] = [
-    {
-        personalNumber: '1234567',
-        fullName: 'ישראל ישראלי',
-        gender: 'זכר',
-        age: 25,
-        profile: 92
-    },
-    {
-        personalNumber: '2345678',
-        fullName: 'נועה לוי',
-        gender: 'נקבה',
-        age: 21,
-        profile: 97
-    },
-    {
-        personalNumber: '3456789',
-        fullName: 'דניאל כהן',
-        gender: 'זכר',
-        age: 23,
-        profile: 82
-    },
-    {
-        personalNumber: '4567890',
-        fullName: 'מיה אברהם',
-        gender: 'נקבה',
-        age: 20,
-        profile: 64
-    }
-]
-
-const injuryTypes = [
-    'פציעת רגל',
-    'פציעת יד',
-    'פגיעת ראש',
-    'כוויה',
-    'חבלה',
-    'פציעה מדממת',
-    'תגובה אלרגית',
-    'אחר'
-]
+const soldiers = computed(() => data.value?.soldiers ?? [])
+const soldierFields = computed(() => data.value?.soldierFields ?? [])
+const injuryTypes = computed(() => data.value?.injuryTypes ?? [])
+const severityLevels = computed(() => data.value?.severityLevels ?? [])
+const evacuationTemplate = computed(() => data.value?.evacuationData ?? null)
 
 const personalNumber = ref('')
 const injuryType = ref('')
 const notes = ref('')
 const severity = ref('')
+const selectedSoldier = ref<Soldier | null>(null)
+const lookupAttempted = ref(false)
 
-const selectedSoldier = computed(() => {
-    return soldiers.find(
-        soldier =>
-            soldier.personalNumber === personalNumber.value.trim()
-    )
+const personalNumberPlaceholder = computed(() => {
+    const exampleNumber = soldiers.value[0]?.personalNumber
+    return exampleNumber ? `לדוגמה: ${exampleNumber}` : 'לדוגמה'
+})
+
+watch(personalNumber, () => {
+    selectedSoldier.value = null
+    lookupAttempted.value = false
 })
 
 const canContinue = computed(() => {
     return (
-        selectedSoldier.value !== undefined &&
+        selectedSoldier.value !== null &&
+        evacuationTemplate.value !== null &&
         injuryType.value !== '' &&
         severity.value !== ''
     )
 })
 
-function chooseSeverity(value: string) {
-    severity.value = value
+function findSoldier() {
+    lookupAttempted.value = true
+    selectedSoldier.value = soldiers.value.find(
+        soldier => soldier.personalNumber === personalNumber.value.trim()
+    ) ?? null
+}
+
+function getSoldierFieldValue(soldier: Soldier, key: string): SoldierFieldValue {
+    return soldier[key] ?? ''
 }
 
 function continueToClinic() {
-    if (!canContinue.value) {
+    const template = evacuationTemplate.value
+    const soldier = selectedSoldier.value
+
+    if (!canContinue.value || !template || !soldier) {
         return
+    }
+
+    const evacuationData: EvacuationData = {
+        ...template,
+        personalNumber: personalNumber.value.trim(),
+        soldier,
+        injuryType: injuryType.value,
+        severity: severity.value,
+        notes: notes.value
     }
 
     sessionStorage.setItem(
         'evacuationData',
-        JSON.stringify({
-            soldier: selectedSoldier.value,
-            injuryType: injuryType.value,
-            severity: severity.value,
-            notes: notes.value
-        })
+        JSON.stringify(evacuationData)
     )
 
     console.log('Evacuation data saved')
 
-    // When we build the next screen:
-    // router.push('/clinic')
 }
 </script>
 
@@ -114,100 +100,46 @@ function continueToClinic() {
                 <p>מילוי פרטי האירוע</p>
             </div>
 
-
             <div class="evacuation-card">
 
                 <!-- PERSONAL NUMBER -->
                 <section class="personal-section">
                     <InputLine id="personalNumber" v-model="personalNumber" label="הזן מספר אישי" type="text"
-                        maxlength="7" placeholder="לדוגמה: 1234567" />
+                        :icon="searchIcon" :icon-size="16" maxlength="7" :placeholder="personalNumberPlaceholder"
+                        @keyup.enter="findSoldier" />
                 </section>
-
 
                 <!-- SOLDIER -->
                 <section v-if="selectedSoldier" class="soldier-section">
 
                     <div class="soldier-title">
-                        <div class="soldier-avatar">
-                            👤
-                        </div>
-
-                        <h2>
-                            {{ selectedSoldier.fullName }}
-                        </h2>
+                        <div class="soldier-avatar">👤</div>
+                        <h2>{{ selectedSoldier.fullName }}</h2>
                     </div>
 
 
                     <div class="soldier-details">
-
-                        <div class="soldier-field">
-                            <span>מין</span>
-                            <strong>
-                                {{ selectedSoldier.gender }}
-                            </strong>
+                        <div v-for="field in soldierFields" :key="field.key" class="soldier-field">
+                            <span>{{ field.label }}</span>
+                            <strong>{{ getSoldierFieldValue(selectedSoldier, field.key) }}</strong>
                         </div>
-
-                        <div class="soldier-field">
-                            <span>גיל</span>
-                            <strong>
-                                {{ selectedSoldier.age }}
-                            </strong>
-                        </div>
-
-                        <div class="soldier-field">
-                            <span>פרופיל</span>
-                            <strong>
-                                {{ selectedSoldier.profile }}
-                            </strong>
-                        </div>
-
-                        <div class="soldier-field">
-                            <span>מספר אישי</span>
-                            <strong>
-                                {{ selectedSoldier.personalNumber }}
-                            </strong>
-                        </div>
-
                     </div>
 
                 </section>
 
-
-                <div v-else-if="personalNumber.length === 7" class="not-found">
-                    לא נמצא חייל עם המספר האישי שהוזן
-                </div>
-
+                <div v-else-if="lookupAttempted" class="not-found">לא נמצא חייל עם המספר האישי שהוזן</div>
 
                 <!-- EVENT DETAILS -->
                 <section class="event-section">
 
                     <div class="field-group">
-
-                        <label>
-                            סוג פציעה
-                        </label>
-
-                        <select v-model="injuryType">
-                            <option value="" disabled>
-                                בחר פציעה
-                            </option>
-
-                            <option v-for="injury in injuryTypes" :key="injury" :value="injury">
-                                {{ injury }}
-                            </option>
-                        </select>
-
+                        <DropdownLine v-model="injuryType" label="סוג פציעה" :options="injuryTypes"
+                            placeholder="בחר פציעה" />
                     </div>
 
-
                     <div class="field-group notes-field">
-
-                        <label>
-                            הערות
-                        </label>
-
-                        <textarea v-model="notes" placeholder="הזן פרטים נוספים על האירוע..."></textarea>
-
+                        <InputLine v-model="notes" label="הערות" :rows="2"
+                            placeholder="הזן פרטים נוספים על האירוע..." />
                     </div>
 
                 </section>
@@ -215,45 +147,17 @@ function continueToClinic() {
 
                 <!-- SEVERITY -->
                 <section class="severity-section">
-
-                    <h3>
-                        חומרת הפינוי
-                    </h3>
-
-                    <div class="severity-bar">
-
-                        <button type="button" class="severity-option mild" :class="{ selected: severity === 'קל' }"
-                            @click="chooseSeverity('קל')">
-                            קל
-                        </button>
-
-                        <button type="button" class="severity-option medium"
-                            :class="{ selected: severity === 'בינוני' }" @click="chooseSeverity('בינוני')">
-                            בינוני
-                        </button>
-
-                        <button type="button" class="severity-option urgent" :class="{ selected: severity === 'דחוף' }"
-                            @click="chooseSeverity('דחוף')">
-                            דחוף
-                        </button>
-
-                    </div>
-
+                    <h3> חומרת הפינוי</h3>
+                    <LevelsBar v-model="severity" :levels="severityLevels" />
                 </section>
-
 
                 <!-- CONTINUE -->
                 <section class="continue-section">
-
-                    <p v-if="!canContinue">
-                        יש להזין מספר אישי, לבחור פציעה וחומרת פינוי כדי להמשיך
-                    </p>
-
+                    <p v-if="!canContinue"> יש להזין מספר אישי, לבחור פציעה וחומרת פינוי כדי להמשיך</p>
                     <button class="continue-button" :disabled="!canContinue" @click="continueToClinic">
                         מצא מרפאה לפינוי
                         <span>←</span>
                     </button>
-
                 </section>
 
             </div>
@@ -343,61 +247,6 @@ function continueToClinic() {
 
     width: 100%;
 }
-
-.personal-section :deep(.input-line) {
-    min-height: 0;
-    margin: 0;
-    padding: 0;
-    border: 0;
-    border-radius: 0;
-    box-shadow: none;
-}
-
-.personal-section :deep(.input-label) {
-    display: block;
-
-    margin-bottom: clamp(0.375rem, 1vw, 0.5rem);
-
-    font-size: clamp(1rem, 2vw, 1.125rem);
-    font-weight: 600;
-}
-
-.personal-section :deep(input) {
-    position: static;
-    width: 100%;
-    min-height: clamp(3.125rem, 6vw, 3.625rem);
-    height: auto;
-    margin: 0;
-
-    padding: 0 clamp(1rem, 2vw, 1.25rem) 0 clamp(2.75rem, 5vw, 3.4375rem);
-
-    border: none;
-    border-bottom: 2px solid #222;
-
-    border-radius: 10px 10px 0 0;
-
-    outline: none;
-
-    background: rgba(255, 255, 255, 0.75);
-
-    font-size: clamp(1.125rem, 2.5vw, 1.375rem);
-
-    text-align: right;
-}
-
-.personal-section :deep(.input-line)::after {
-    content: '🔎';
-    position: absolute;
-
-    left: clamp(0.75rem, 2vw, 1.125rem);
-    bottom: calc(clamp(3.125rem, 6vw, 3.625rem) / 2);
-
-    transform: translateY(50%);
-
-    font-size: clamp(1.125rem, 2.5vw, 1.375rem);
-    pointer-events: none;
-}
-
 
 /* SOLDIER */
 
@@ -509,48 +358,6 @@ function continueToClinic() {
     gap: clamp(0.375rem, 1vw, 0.5rem);
 }
 
-.field-group label {
-    font-size: clamp(1rem, 2vw, 1.125rem);
-    font-weight: 600;
-}
-
-.field-group select {
-    width: 100%;
-    min-height: clamp(3rem, 6vw, 3.4375rem);
-
-    padding: 0 clamp(0.75rem, 2vw, 1rem);
-
-    border: none;
-    border-radius: 9px;
-
-    outline: none;
-
-    background: white;
-
-    font-size: clamp(1rem, 2vw, 1.125rem);
-}
-
-.notes-field textarea {
-    width: 100%;
-    min-height: clamp(6.5rem, 15vw, 8.125rem);
-
-    padding: clamp(0.75rem, 2vw, 0.9375rem);
-
-    resize: vertical;
-
-    border: none;
-    border-radius: 9px;
-
-    outline: none;
-
-    background: white;
-
-    font-size: clamp(0.9375rem, 2vw, 1.0625rem);
-
-    font-family: inherit;
-}
-
-
 /* SEVERITY */
 
 .severity-section {
@@ -562,49 +369,6 @@ function continueToClinic() {
 
     font-size: clamp(1rem, 2vw, 1.1875rem);
 }
-
-.severity-bar {
-    width: 100%;
-
-    display: grid;
-
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-
-    overflow: hidden;
-
-    border: 2px solid #ad1746;
-
-    border-radius: 30px;
-
-    background:
-        linear-gradient(to left,
-            #bd2929,
-            #f0c640,
-            #5ccf4b);
-}
-
-.severity-option {
-    min-height: clamp(3rem, 6vw, 3.4375rem);
-
-    border: none;
-
-    background: transparent;
-
-    color: #252525;
-
-    font-size: clamp(1rem, 2vw, 1.1875rem);
-    font-weight: 600;
-
-    cursor: pointer;
-}
-
-.severity-option.selected {
-    background: rgba(255, 255, 255, 0.92);
-
-    box-shadow:
-        inset 0 0 0 3px #ad1746;
-}
-
 
 /* CONTINUE */
 
@@ -672,11 +436,6 @@ function continueToClinic() {
 
     .evacuation-page {
         padding-inline: 1rem;
-    }
-
-    .severity-bar {
-        grid-template-columns: 1fr;
-        border-radius: 0.75rem;
     }
 
 }
