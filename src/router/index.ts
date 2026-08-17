@@ -6,6 +6,7 @@ import {
 import LoginScreen from '../components/screens/loginscreen.vue'
 import WelcomeScreen from '../components/screens/welcomescreen.vue'
 import EvacuationScreen from '../components/screens/evacuationscreen.vue'
+import { isLoggedIn } from '../auth/auth'
 
 
 const router = createRouter({
@@ -30,6 +31,16 @@ const router = createRouter({
       component: EvacuationScreen
     }
   ]
+})
+
+router.beforeEach((to) => {
+  if (!isLoggedIn.value && to.path !== '/') {
+    return '/'
+  }
+
+  if (isLoggedIn.value && to.path === '/') {
+    return '/home'
+  }
 })
 
 

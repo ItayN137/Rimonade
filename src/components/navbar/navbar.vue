@@ -50,17 +50,14 @@ function logout() {
     </div>
 
     <!-- RIGHT SIDE -->
-    <div class="navbar-right">
+    <div v-if="isLoggedIn" class="navbar-right">
+      <button class="nav-button" @click="goHome">
+        <img :src="homeIcon" alt="Home" />
+      </button>
 
-      <template v-if="isLoggedIn">
-        <button class="nav-button" @click="goHome">
-          <img :src="homeIcon" alt="Home" />
-        </button>
-
-        <button class="nav-button" @click="logout">
-          <img :src="logoutIcon" alt="Logout" />
-        </button>
-      </template>
+      <button class="nav-button" @click="logout">
+        <img :src="logoutIcon" alt="Logout" />
+      </button>
 
       <span class="hello-user">
         שלום, {{ currentUser || 'אנא התחבר למערכת' }}
