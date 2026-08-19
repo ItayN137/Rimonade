@@ -6,6 +6,7 @@ import {
 import LoginScreen from '../components/screens/loginscreen.vue'
 import WelcomeScreen from '../components/screens/welcomescreen.vue'
 import EvacuationScreen from '../components/screens/evacuationscreen.vue'
+import MapSelection from '../components/screens/mapselection.vue'
 import { isLoggedIn } from '../auth/auth'
 
 
@@ -29,6 +30,12 @@ const router = createRouter({
       path: '/evacuation',
       name: 'evacuation',
       component: EvacuationScreen
+    },
+
+    {
+      path: '/evacuation/mapselection',
+      name: 'map-selection',
+      component: MapSelection
     }
   ]
 })

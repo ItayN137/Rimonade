@@ -88,6 +88,123 @@
       "color": "#FF0084"
     }
   ],
+  "hospitals": [
+    {
+      "id": 1,
+      "name": "המרכז הרפואי שיבא",
+      "city": "רמת גן",
+      "address": "דרך שיבא 2, רמת גן",
+      "location": {
+        "latitude": 32.0477,
+        "longitude": 34.8428
+      },
+      "distanceFromCurrentLocationKm": 8.4
+    },
+    {
+      "id": 2,
+      "name": "המרכז הרפואי איכילוב",
+      "city": "תל אביב-יפו",
+      "address": "ויצמן 6, תל אביב-יפו",
+      "location": {
+        "latitude": 32.0806,
+        "longitude": 34.7892
+      },
+      "distanceFromCurrentLocationKm": 11.2
+    },
+    {
+      "id": 3,
+      "name": "המרכז הרפואי רמב״ם",
+      "city": "חיפה",
+      "address": "העלייה השנייה 8, חיפה",
+      "location": {
+        "latitude": 32.8338,
+        "longitude": 34.9857
+      },
+      "distanceFromCurrentLocationKm": 91.5
+    },
+    {
+      "id": 4,
+      "name": "המרכז הרפואי הדסה עין כרם",
+      "city": "ירושלים",
+      "address": "קלמן יעקב מן, ירושלים",
+      "location": {
+        "latitude": 31.7653,
+        "longitude": 35.1495
+      },
+      "distanceFromCurrentLocationKm": 54.7
+    },
+    {
+      "id": 5,
+      "name": "המרכז הרפואי סורוקה",
+      "city": "באר שבע",
+      "address": "יצחק רגר 151, באר שבע",
+      "location": {
+        "latitude": 31.2595,
+        "longitude": 34.8003
+      },
+      "distanceFromCurrentLocationKm": 103.6
+    },
+    {
+      "id": 6,
+      "name": "המרכז הרפואי זיו",
+      "city": "צפת",
+      "address": "דרך הרמב״ם, צפת",
+      "location": {
+        "latitude": 32.9597,
+        "longitude": 35.4943
+      },
+      "distanceFromCurrentLocationKm": 145.8
+    }
+  ],
+  "hospitalFields": [
+    {
+      "label": "עיר",
+      "key": "city"
+    },
+    {
+      "label": "כתובת",
+      "key": "address"
+    },
+    {
+      "label": "מרחק מהמיקום שלך",
+      "key": "distanceFromCurrentLocationKm",
+      "suffix": " ק״מ"
+    }
+  ],
+  "evacuationSummaryFields": [
+    {
+      "label": "שם מלא",
+      "key": "fullName"
+    },
+    {
+      "label": "מין",
+      "key": "gender"
+    },
+    {
+      "label": "גיל",
+      "key": "age"
+    },
+    {
+      "label": "פרופיל",
+      "key": "profile"
+    },
+    {
+      "label": "מספר אישי",
+      "key": "personalNumber"
+    },
+    {
+      "label": "סוג פציעה",
+      "key": "injuryType"
+    },
+    {
+      "label": "חומרה",
+      "key": "severity"
+    },
+    {
+      "label": "הערות",
+      "key": "notes"
+    }
+  ],
   "evacuationData": {
     "personalNumber": "",
     "soldier": null,

@@ -1,15 +1,18 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import DropdownLine from '../generic/DropdownLine.vue'
 import InputLine from '../generic/InputLine.vue'
 import LevelsBar from '../generic/levelsbar.vue'
-import searchIcon from '../../assets/search.svg'
 import {
+    setCurrentEvacuationData,
     type EvacuationData,
     type Soldier,
     type SoldierFieldValue
 } from '@/services/mockDataService'
 import { useMockDataSections } from '@/composables/useMockDataSections'
+
+const router = useRouter()
 
 const { data, loading, error } = useMockDataSections([
     'soldiers',
@@ -20,6 +23,7 @@ const { data, loading, error } = useMockDataSections([
 ])
 
 const soldiers = computed(() => data.value?.soldiers ?? [])
+const personalNumberOptions = computed(() => soldiers.value)
 const soldierFields = computed(() => data.value?.soldierFields ?? [])
 const injuryTypes = computed(() => data.value?.injuryTypes ?? [])
 const severityLevels = computed(() => data.value?.severityLevels ?? [])
@@ -38,8 +42,10 @@ const personalNumberPlaceholder = computed(() => {
 })
 
 watch(personalNumber, () => {
-    selectedSoldier.value = null
-    lookupAttempted.value = false
+    lookupAttempted.value = personalNumber.value !== ''
+    selectedSoldier.value = soldiers.value.find(
+        soldier => soldier.personalNumber === personalNumber.value
+    ) ?? null
 })
 
 const canContinue = computed(() => {
@@ -50,13 +56,6 @@ const canContinue = computed(() => {
         severity.value !== ''
     )
 })
-
-function findSoldier() {
-    lookupAttempted.value = true
-    selectedSoldier.value = soldiers.value.find(
-        soldier => soldier.personalNumber === personalNumber.value.trim()
-    ) ?? null
-}
 
 function getSoldierFieldValue(soldier: Soldier, key: string): SoldierFieldValue {
     return soldier[key] ?? ''
@@ -79,13 +78,8 @@ function continueToClinic() {
         notes: notes.value
     }
 
-    sessionStorage.setItem(
-        'evacuationData',
-        JSON.stringify(evacuationData)
-    )
-
-    console.log('Evacuation data saved')
-
+    setCurrentEvacuationData(evacuationData)
+    router.push('/evacuation/mapselection')
 }
 </script>
 
@@ -104,9 +98,9 @@ function continueToClinic() {
 
                 <!-- PERSONAL NUMBER -->
                 <section class="personal-section">
-                    <InputLine id="personalNumber" v-model="personalNumber" label="הזן מספר אישי" type="text"
-                        :icon="searchIcon" :icon-size="16" maxlength="7" :placeholder="personalNumberPlaceholder"
-                        @keyup.enter="findSoldier" />
+                    <DropdownLine v-model="personalNumber" label="הזן מספר אישי" :options="personalNumberOptions"
+                        :display-fields="['personalNumber', 'fullName']" value-field="personalNumber"
+                        :placeholder="personalNumberPlaceholder" searchable />
                 </section>
 
                 <!-- SOLDIER -->
