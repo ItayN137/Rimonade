@@ -1,18 +1,22 @@
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
+import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import * as L from 'leaflet'
-import 'leaflet/dist/leaflet.css'
 import { useMockDataSections } from '@/composables/useMockDataSections'
 import InfoPanel from '@/components/generic/infopanel.vue'
 import TextButton from '@/components/generic/TextButton.vue'
 import ConfirmPopup from '@/components/generic/ConfirmPopup.vue'
 import Toast from '@/components/generic/Toast.vue'
+import MapLocation, {
+  type MapCenter,
+  type MapLocationItem
+} from '@/components/generic/MapLocation.vue'
 import {
   confirmEvacuationHospital,
   getCurrentEvacuationData,
   type Hospital
 } from '@/services/mockDataService'
+
+defineOptions({ name: 'HospitalsScreen' })
 
 const router = useRouter()
 
@@ -22,6 +26,14 @@ const { data, loading, error } = useMockDataSections([
   'evacuationSummaryFields'
 ])
 const hospitals = computed(() => data.value?.hospitals ?? [])
+const hospitalMapLocations = computed<MapLocationItem[]>(() =>
+  hospitals.value.map(hospital => ({
+    id: hospital.id,
+    name: hospital.name,
+    latitude: hospital.location.latitude,
+    longitude: hospital.location.longitude
+  }))
+)
 const hospitalFields = computed(() => data.value?.hospitalFields ?? [])
 const evacuationSummaryFields = computed(() => data.value?.evacuationSummaryFields ?? [])
 const evacuationData = computed(() => getCurrentEvacuationData())
@@ -42,53 +54,18 @@ const evacuationSummaryData = computed(() => {
 const selectedHospital = ref<Hospital | null>(null)
 const showConfirmation = ref(false)
 const confirmationComplete = ref(false)
-const mapElement = ref<HTMLElement | null>(null)
 const hospitalIcon = '✚'
+const mapCenter: MapCenter = [31.6, 34.9]
 
-let map: L.Map | null = null
-const markers = new Map<number, L.Marker>()
+function selectHospital(location: MapLocationItem): void {
+  const hospital = hospitals.value.find(item => item.id === location.id)
 
-function createHospitalIcon(selected: boolean): L.DivIcon {
-  return L.divIcon({
-    className: selected ? 'hospital-marker hospital-marker--selected' : 'hospital-marker',
-    html: '<span>✚</span>',
-    iconSize: selected ? [46, 46] : [38, 38],
-    iconAnchor: selected ? [23, 23] : [19, 19]
-  })
-}
-
-function selectHospital(hospital: Hospital): void {
-  selectedHospital.value = hospital
-  confirmationComplete.value = false
-
-  markers.forEach((marker, hospitalId) => {
-    marker.setIcon(createHospitalIcon(hospitalId === hospital.id))
-  })
-}
-
-function initializeMap(availableHospitals: Hospital[]): void {
-  if (map || !mapElement.value || availableHospitals.length === 0) {
+  if (!hospital) {
     return
   }
 
-  map = L.map(mapElement.value, { zoomControl: true }).setView([31.6, 34.9], 7)
-
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 19,
-    attribution: '&copy; OpenStreetMap contributors'
-  }).addTo(map)
-
-  availableHospitals.forEach((hospital) => {
-    const marker = L.marker(
-      [hospital.location.latitude, hospital.location.longitude],
-      { icon: createHospitalIcon(false), title: hospital.name }
-    )
-      .addTo(map!)
-      .bindTooltip(hospital.name, { direction: 'top', offset: [0, -18] })
-      .on('click', () => selectHospital(hospital))
-
-    markers.set(hospital.id, marker)
-  })
+  selectedHospital.value = hospital
+  confirmationComplete.value = false
 }
 
 function openConfirmation(): void {
@@ -116,16 +93,6 @@ function handleToastClose(): void {
   router.push({ name: 'home' })
 }
 
-watch(hospitals, async (availableHospitals) => {
-  await nextTick()
-  initializeMap(availableHospitals)
-}, { immediate: true })
-
-onBeforeUnmount(() => {
-  map?.remove()
-  map = null
-  markers.clear()
-})
 </script>
 
 <template>
@@ -143,7 +110,8 @@ onBeforeUnmount(() => {
 
       <div class="selection-layout">
         <section class="map-card" aria-label="מפת בתי חולים בישראל">
-          <div ref="mapElement" class="hospital-map"></div>
+          <MapLocation :locations="hospitalMapLocations" :selected-id="selectedHospital?.id"
+            :center="mapCenter" @select="selectHospital" />
           <div v-if="loading" class="map-loading">טוען מפה...</div>
         </section>
 
@@ -158,9 +126,8 @@ onBeforeUnmount(() => {
             </div>
           </section>
 
-          <InfoPanel v-if="evacuationSummaryData" icon="✚" header="פרטי הפינוי"
-            description="סיכום פרטי האירוע והחייל" :data="evacuationSummaryData"
-            :fields="evacuationSummaryFields" />
+          <InfoPanel v-if="evacuationSummaryData" icon="✚" header="פרטי הפינוי" description="סיכום פרטי האירוע והחייל"
+            :data="evacuationSummaryData" :fields="evacuationSummaryFields" />
           <section v-else class="panel">
             <p class="missing-evacuation">לא נמצאו פרטי פינוי. יש למלא אותם במסך הקודם.</p>
           </section>
@@ -172,10 +139,10 @@ onBeforeUnmount(() => {
     </main>
 
     <ConfirmPopup v-model="showConfirmation" title="אישור הזמנת פינוי"
-      :message="`האם אתם בטוחים שברצונכם להזמין פינוי אל ${selectedHospital?.name}?`"
-      confirm-text="אישור" cancel-text="ביטול" @confirm="confirmEvacuation" />
+      :message="`האם אתם בטוחים שברצונכם להזמין פינוי אל ${selectedHospital?.name}?`" confirm-text="אישור"
+      cancel-text="ביטול" @confirm="confirmEvacuation" />
 
-    <Toast v-if="confirmationComplete" type="success" message="הפינוי הוזמן בהצלחה"
+    <Toast v-if="confirmationComplete" type="success" message="הפינוי הוזמן בהצלחה" :duration="2000"
       @close="handleToastClose" />
   </div>
 </template>
@@ -231,14 +198,6 @@ onBeforeUnmount(() => {
   border-radius: 18px;
   background: #f5d9df;
   box-shadow: 0 12px 30px rgba(94, 34, 53, 0.14);
-}
-
-.hospital-map {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  direction: ltr;
 }
 
 .map-loading {
@@ -314,29 +273,6 @@ onBeforeUnmount(() => {
   margin-bottom: 1rem;
   background: #fff;
   color: #ad1746;
-}
-
-:deep(.hospital-marker) {
-  display: grid;
-  place-items: center;
-  border: 3px solid white;
-  border-radius: 50% 50% 50% 0;
-  background: #bd4167;
-  color: white;
-  box-shadow: 0 4px 12px rgba(72, 18, 35, 0.35);
-  transform: rotate(-45deg);
-}
-
-:deep(.hospital-marker span) {
-  transform: rotate(45deg);
-  font-size: 1.15rem;
-  line-height: 1;
-}
-
-:deep(.hospital-marker--selected) {
-  border-color: #fff4b0;
-  background: #811037;
-  box-shadow: 0 0 0 5px rgba(173, 23, 70, 0.25), 0 5px 15px rgba(72, 18, 35, 0.4);
 }
 
 @media (max-width: 950px) {

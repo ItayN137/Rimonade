@@ -16,28 +16,26 @@ const emit = defineEmits<{ close: [] }>()
 const visible = ref(true)
 
 let displayTimer: ReturnType<typeof setTimeout> | undefined
-let transitionTimer: ReturnType<typeof setTimeout> | undefined
 
 onMounted(() => {
   displayTimer = setTimeout(() => {
     visible.value = false
-    transitionTimer = setTimeout(() => emit('close'), 50)
   }, props.duration)
 })
 
 onBeforeUnmount(() => {
-  if (displayTimer) {
+  if (displayTimer !== undefined) {
     clearTimeout(displayTimer)
   }
-
-  if (transitionTimer) {
-    clearTimeout(transitionTimer)
-  }
 })
+
+function handleAfterLeave(): void {
+  emit('close')
+}
 </script>
 
 <template>
-  <Transition name="toast" appear>
+  <Transition name="toast" appear @after-leave="handleAfterLeave">
     <div v-if="visible" class="toast" :class="`toast--${type}`" role="status" aria-live="polite">
       {{ message }}
     </div>

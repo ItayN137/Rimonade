@@ -65,22 +65,16 @@ function login() {
 
 
 <template>
-
   <div class="login-page">
-
     <main class="login-main">
-
       <h1 class="login-title">
         התחברות
       </h1>
-
       <div class="login-card">
 
         <InputLine v-model="username" label="שם משתמש" :icon="userIcon" :icon-size="16" />
 
-
         <InputLine v-model="password" label="סיסמה" :icon="keyIcon" :icon-size="14" type="password" />
-
 
         <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
 
@@ -89,11 +83,8 @@ function login() {
         </button>
 
       </div>
-
     </main>
-
   </div>
-
 </template>
 
 

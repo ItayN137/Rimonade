@@ -95,6 +95,17 @@ function openSearchableDropdown() {
   }
 }
 
+function handleSearchInput(event: Event): void {
+  const value = (event.target as HTMLInputElement).value
+
+  searchText.value = value
+  isOpen.value = true
+
+  if (value !== model.value) {
+    model.value = ''
+  }
+}
+
 function selectInputText(event: FocusEvent) {
   openSearchableDropdown()
   ;(event.target as HTMLInputElement).select()
@@ -141,9 +152,9 @@ watch(selectedDisplay, (display) => {
     </button>
 
     <div v-else class="dropdown-trigger dropdown-trigger--searchable" :class="{ disabled }" @click="openSearchableDropdown">
-      <input v-model="searchText" class="dropdown-input" type="text" :placeholder="placeholder" :disabled="disabled"
+      <input :value="searchText" class="dropdown-input" type="text" :placeholder="placeholder" :disabled="disabled"
         role="combobox" aria-autocomplete="list" aria-haspopup="listbox" :aria-expanded="isOpen"
-        @focus="selectInputText" @input="openSearchableDropdown" />
+        @focus="selectInputText" @input="handleSearchInput" />
       <span class="dropdown-arrow" :class="{ open: isOpen }">⌄</span>
     </div>
 

@@ -6,7 +6,7 @@ import {
 import LoginScreen from '../components/screens/loginscreen.vue'
 import WelcomeScreen from '../components/screens/welcomescreen.vue'
 import EvacuationScreen from '../components/screens/evacuationscreen.vue'
-import MapSelection from '../components/screens/mapselection.vue'
+import HospitalsScreen from '../components/screens/hospitalsscreen.vue'
 import { isLoggedIn } from '../auth/auth'
 
 
@@ -35,7 +35,7 @@ const router = createRouter({
     {
       path: '/evacuation/mapselection',
       name: 'map-selection',
-      component: MapSelection
+      component: HospitalsScreen
     }
   ]
 })
@@ -43,10 +43,6 @@ const router = createRouter({
 router.beforeEach((to) => {
   if (!isLoggedIn.value && to.path !== '/') {
     return '/'
-  }
-
-  if (isLoggedIn.value && to.path === '/') {
-    return '/home'
   }
 })
 

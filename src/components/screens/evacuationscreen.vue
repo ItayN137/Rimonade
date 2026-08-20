@@ -138,7 +138,6 @@ function continueToClinic() {
 
                 </section>
 
-
                 <!-- SEVERITY -->
                 <section class="severity-section">
                     <h3> חומרת הפינוי</h3>
